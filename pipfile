@@ -1,0 +1,25 @@
+[packages]
+fastapi = "*"
+uvicorn = "*"
+pyjwt = "*"
+pymongo = "*"
+python-dotenv = "*"
+annotated-types = "*"
+python-multipart = "*"
+requests = "*"
+httpx = "*"
+pydash = "*"
+asyncio = "*"
+bcrypt = "*"
+
+[dev-packages]
+black = "*"
+flake8 = "*"
+ipykernel = "*"
+
+[requires]
+python_version = "*"
+
+[scripts]
+black = "black ."
+flake8 = "flake8 ."
