@@ -6,12 +6,14 @@ from typing import List
 
 __all__ = (
     "users",
-    "admin_management"
+    "admin_management",
+    "state_universities"
 )
 
 
 users="users"
 admin_management="admin_management"
+state_universities="state_universities"
 
 
 def __dir__() -> List[str]:
