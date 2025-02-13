@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 @router.get(path="/{id}")
-async def get_user_by_email(
+async def get_universities_by_state(
     state_name:str,
     s: Annotated[University, Depends(University)],
 ):
@@ -35,7 +35,7 @@ async def get_user_by_email(
 
     
 @router.get(path="/")
-async def get_all_users(
+async def get_all_universities(
     s: Annotated[University, Depends(University)],
 ):
     try:
@@ -50,7 +50,7 @@ async def get_all_users(
         raise HTTPException(500, f"Unknown Error Occurred: {e}")
     
 @router.post(path="/")
-async def post_user(
+async def post_state_university(
     request: StateUniversitySchema,
     s:Annotated[University,Depends(University)],
 ):
