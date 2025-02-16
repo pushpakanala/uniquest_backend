@@ -12,6 +12,7 @@ pydash = "*"
 asyncio = "*"
 bcrypt = "*"
 google-generativeai = "*"
+openai = "*"
 
 [dev-packages]
 black = "*"

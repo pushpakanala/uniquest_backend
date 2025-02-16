@@ -7,6 +7,7 @@ from app.common.constants import Resources
 from app.common.helpers import format_response
 import bcrypt,json,re
 import google.generativeai as ai
+import openai
 
 class LLM:
     def __init__(
@@ -16,17 +17,19 @@ class LLM:
         self.db = db
         self.collection = llm
         self.model=LLMSchema
-        self.API_KEY=Resources.API_KEY
-        self.model = ai.GenerativeModel("gemini-pro")
-        self.chat = self.model.start_chat()
+        self.gemini_API_KEY=Resources.API_KEY
+        self.gemini_model = ai.GenerativeModel("gemini-pro")
+        self.gemini_chat = self.gemini_model.start_chat()
+        self.gpt_API_KEY=Resources.GPT_API_KEY
+        self.gpt_model='gpt-4o'
     
     async def chat_with_ai(self,request):
-        API_KEY = self.API_KEY
+        API_KEY = self.gemini_API_KEY
         ai.configure(api_key=API_KEY)
         if request.lower() == "bye":
             return {"response": "GoodBye!"}
     
-        response = self.chat.send_message(request)
+        response = self.gemini_chat.send_message(request)
         return {"response": response.text}
     
     def parse_json_response(self,response_text):
@@ -42,9 +45,63 @@ class LLM:
         except json.JSONDecodeError:
             return {"status": {"code": 500, "message": "Invalid JSON format"}}
     
+    def parse_gpt_json_response(self,response_text):
+        """Extracts valid JSON from the AI response."""
+        try:
+            # Extract JSON content using regex (handles improperly formatted responses)
+            match = re.search(r"\{.*\}|\[.*\]", response_text, re.DOTALL)
+            if match:
+                json_data = json.loads(match.group(0))  # Convert matched JSON string
+                return json_data
+            else:
+                return {"status": {"code": 500, "message": "Failed to parse JSON"}}
+        except json.JSONDecodeError:
+            return {"status": {"code": 500, "message": "Invalid JSON format"}}
+    
     async def get_top_universities(self,state):
-        API_KEY = self.API_KEY
+        API_KEY = self.gemini_API_KEY
         ai.configure(api_key=API_KEY)
         query = f"Give me the top 10 universities in {state}, USA, in JSON format with fields: 'state_name' and 'university_name'."
-        response = self.chat.send_message(query)
+        response = self.gemini_chat.send_message(query)
         return self.parse_json_response(response.text)
+    
+    async def get_gpt_top_universities(self,state):
+        openai.api_key = self.gpt_API_KEY
+        query = f"Give me the top 10 universities in {state}, USA, in JSON format with fields: 'state_name' and 'university_name'."
+
+        response = openai.chat.completions.create(
+            model=self.gpt_model,
+            messages=[{"role": "user", "content": query}]
+        )
+
+        return self.parse_gpt_json_response(response.choices[0].message.content)
+    
+    async def get_gpt_universities_data(self,university_name):
+        openai.api_key = self.gpt_API_KEY
+        query = (
+        f"Provide details for {university_name} in the USA in JSON format with the following fields: "
+        "'school': { 'zip', 'city', 'name', 'state', 'address', 'latitude', 'longitude', 'accreditor', 'school_url', "
+        "'accreditor_code', 'us_ranking', 'school_programs', 'eligibility_addmission_exams' }, "
+        "'programs': { 'undergrad_programs': [{'program_name', 'fees', 'program_duration'}], "
+        "'grad_programs': [{'program_name', 'fees', 'program_duration'}] }, "
+        "'students': { 'total_students', 'grad_students', 'men', 'women', 'race_ethnicity' }, "
+        "'faculty': { 'men', 'women', 'race_ethnicity' } }"
+        "Ensure 'us_ranking' has a number and include 'gre', 'ielts', 'toefl', and 'duolingo' these exams if the given university accept these and also add other exams that are not given here and university accepts in eligibility_addmission_exams. "
+        "Ensure there are at least top 10 programs in both undergrad and grad programs and display the full name of the program and dont miss any program which are majorly choosen by the students."
+    )
+        response = openai.chat.completions.create(
+        model=self.gpt_model,  # Ensure you are using a suitable model
+        messages=[{"role": "user", "content": query}]
+    )
+        university_data = response.choices[0].message.content
+        json_match = re.search(r'\{.*\}', university_data, re.DOTALL)
+
+        if json_match:
+            university_data = json_match.group(0)  # Get the JSON part
+            try:
+                university_json = json.loads(university_data)
+                return university_json
+            except json.JSONDecodeError:
+                return {"error": "Malformed JSON response"}
+        else:
+            return {"error": "No JSON detected in response"}
