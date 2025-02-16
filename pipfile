@@ -11,6 +11,7 @@ httpx = "*"
 pydash = "*"
 asyncio = "*"
 bcrypt = "*"
+google-generativeai = "*"
 
 [dev-packages]
 black = "*"

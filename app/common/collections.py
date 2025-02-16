@@ -7,13 +7,15 @@ from typing import List
 __all__ = (
     "users",
     "admin_management",
-    "state_universities"
+    "state_universities",
+    "llm"
 )
 
 
 users="users"
 admin_management="admin_management"
 state_universities="state_universities"
+llm="llm"
 
 
 def __dir__() -> List[str]:
