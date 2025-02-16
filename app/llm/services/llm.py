@@ -79,16 +79,20 @@ class LLM:
     async def get_gpt_universities_data(self,university_name):
         openai.api_key = self.gpt_API_KEY
         query = (
-        f"Provide details for {university_name} in the USA in JSON format with the following fields: "
-        "'school': { 'zip', 'city', 'name', 'state', 'address', 'latitude', 'longitude', 'accreditor', 'school_url', "
-        "'accreditor_code', 'us_ranking', 'school_programs', 'eligibility_addmission_exams' }, "
-        "'programs': { 'undergrad_programs': [{'program_name', 'fees', 'program_duration'}], "
-        "'grad_programs': [{'program_name', 'fees', 'program_duration'}] }, "
-        "'students': { 'total_students', 'grad_students', 'men', 'women', 'race_ethnicity' }, "
-        "'faculty': { 'men', 'women', 'race_ethnicity' } }"
-        "Ensure 'us_ranking' has a number and include 'gre', 'ielts', 'toefl', and 'duolingo' these exams if the given university accept these and also add other exams that are not given here and university accepts in eligibility_addmission_exams. "
-        "Ensure there are at least top 10 programs in both undergrad and grad programs and display the full name of the program and dont miss any program which are majorly choosen by the students."
-    )
+    f"Provide details for {university_name} in the USA in **strict JSON format** with the following fields: "
+    "'school': { 'zip', 'city', 'name', 'state', 'address', 'latitude', 'longitude', 'accreditor', 'school_url', "
+    "'accreditor_code', 'us_ranking', 'school_programs', 'eligibility_addmission_exams' }, "
+    "'programs': { 'undergrad_programs': [{'program_name', 'fees', 'program_duration'}], "
+    "'grad_programs': [{'program_name', 'fees', 'program_duration'}] }, "
+    "'students': { 'total_students', 'grad_students', 'men', 'women', 'race_ethnicity' }, "
+    "'faculty': { 'men', 'women', 'race_ethnicity' } }, "
+    "Ensure 'us_ranking' is a number. Include 'GRE', 'IELTS', 'TOEFL', and 'Duolingo' in eligibility_addmission_exams "
+    "if the university accepts them, along with any other exams it recognizes. "
+    "Retrieve all available programs (ensure at least 10) in both undergraduate and graduate categories. "
+    "Display the **full name** of each program and ensure no majorly chosen program is omitted."
+    "Strictly return a **valid JSON object** without any extra text or explanations."
+)
+
         response = openai.chat.completions.create(
         model=self.gpt_model,  # Ensure you are using a suitable model
         messages=[{"role": "user", "content": query}]
