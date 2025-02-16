@@ -31,14 +31,13 @@ async def chat_with_ai(
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(500, f"Unknown Error Occurred: {e}")
 
-@router.post(path="/")
-async def post_user(
-    request: LLMSchema,
+@router.get(path="/top-universities")
+async def get_top_universities(
+    state_name:str,
     s:Annotated[LLM,Depends(LLM)],
 ):
     try:
-        req_body = request.dict()
-        res=await s.get_top_universities(req_body)
+        res=await s.get_top_universities(state_name)
         if res:
             return format_response(
                 status.HTTP_200_OK,data=res, message=Resources.FETCHED
