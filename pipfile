@@ -1,9 +1,6 @@
 [packages]
-fastapi = "*"
 uvicorn = "*"
-pyjwt = "*"
 pymongo = "*"
-python-dotenv = "*"
 annotated-types = "*"
 python-multipart = "*"
 requests = "*"
@@ -13,6 +10,9 @@ asyncio = "*"
 bcrypt = "*"
 google-generativeai = "*"
 openai = "*"
+pyjwt = "*"
+fastapi = {extras = ["all"], version = "*"}
+python-dotenv = "*"
 
 [dev-packages]
 black = "*"

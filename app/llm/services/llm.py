@@ -79,11 +79,11 @@ class LLM:
     async def get_gpt_universities_data(self,university_name):
         openai.api_key = self.gpt_API_KEY
         query = (
-    f"Provide details for {university_name} in the USA in **strict JSON format** with the following fields: "
+    f"Provide details for {university_name} in the USA in **strict JSON format** with the following fields: " 
     "'school': { 'zip', 'city', 'name', 'state', 'address', 'latitude', 'longitude', 'accreditor', 'school_url', "
-    "'accreditor_code', 'us_ranking', 'school_programs', 'eligibility_addmission_exams' }, "
-    "'programs': { 'undergrad_programs': [{'program_name', 'fees', 'program_duration'}], "
-    "'grad_programs': [{'program_name', 'fees', 'program_duration'}] }, "
+    "'accreditor_code', 'us_ranking', 'school_programs', 'eligibility_addmission_exams', 'founded_in','cost_of_living_near_university(low or medium or high)','type(public or private)','contact_details','graduation_rate','acceptance_rate' }, "  
+    "'programs': { 'undergrad_programs': [{'program_name', 'fees(total course fee usd)', 'program_duration','course_rank(us)'}], "  
+    "'grad_programs': [{'program_name', 'fees(total course fee usd)', 'program_duration','course_rank(us)'}] }, "  
     "'students': { 'total_students', 'grad_students', 'men', 'women', 'race_ethnicity' }, "
     "'faculty': { 'men', 'women', 'race_ethnicity' } }, "
     "Ensure 'us_ranking' is a number. Include 'GRE', 'IELTS', 'TOEFL', and 'Duolingo' in eligibility_addmission_exams "
@@ -91,6 +91,8 @@ class LLM:
     "Retrieve all available programs (ensure at least 10) in both undergraduate and graduate categories. "
     "Display the **full name** of each program and ensure no majorly chosen program is omitted."
     "Strictly return a **valid JSON object** without any extra text or explanations."
+    "For 'race_ethnicity' values, make sure to provide percentages even if data is not publicly available."
+
 )
 
         response = openai.chat.completions.create(
