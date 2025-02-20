@@ -6,6 +6,11 @@ from app.users.models.user import UserSchema
 from app.common.constants import Resources
 from app.common.helpers import format_response
 import bcrypt
+import random
+import string
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 class User:
     def __init__(
     self,
@@ -20,6 +25,19 @@ class User:
         email=body
         res = self.db.find_data(self.collection, self.model, {"email":email})
         return res
+    
+    def generate_password(self):
+        # Define the core password segment
+        core = "Uniquest"
+        symbol = "@"
+    
+        # Generate random numbers for the suffix
+        random_numbers = ''.join(random.choices(string.digits, k=random.randint(3, 5)))
+    
+        # Combine the parts to create the password
+        password = f"{core}{symbol}{random_numbers}"
+    
+        return password
     
     
     def verify_password(self,password: str, hashed_password: str) -> bool:
@@ -46,6 +64,53 @@ class User:
     def hash_password(self,password: str) -> str:
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     
+    def send_email(self,recipient_email,password):
+        sender_email = "uniquestservicesystem@gmail.com"
+        sender_password = "hmdzizsxynygmitz"  # Use an app password if 2FA is enabled
+        recipient_email = recipient_email
+        url="uniquest-d9hk.onrender.com"
+        # Email content
+        subject = "User Credentials"
+        body = f"""
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; background-color: #f4f4f9; padding: 20px;">
+  <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <h2 style="color: #333;">Welcome to Uniquest!</h2>
+    <p style="color: #555;">Hello,</p>
+    <p style="color: #555;">Thank you for joining <strong>Uniquest</strong>. Below is your login password for accessing our platform:</p>
+    <p style="font-size: 18px; font-weight: bold; color: #2a9d8f;">{password}</p>
+    <p style="color: #555;">You can log in using the following link: <a href="{url}" style="color: #2a9d8f; text-decoration: none;">{url}</a></p>
+    <p style="color: #555;">Once you log in with these credentials, we recommend changing your password for security purposes.</p>
+    <p style="color: #555;">Please keep this password secure and do not share it with anyone.</p>
+    <p style="margin-top: 20px; color: #888;">Best regards,<br>The Uniquest Team</p>
+    <p style="margin-top: 10px; color: #555; text-align: center; font-style: italic;">Thanks for using Uniquest!</p>
+  </div>
+</body>
+</html>
+"""
+
+
+        # Create the email message
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = recipient_email
+        # Gmail account credentials
+        message["Subject"] = subject
+
+        # Attach the body to the email
+        message.attach(MIMEText(body, "html"))
+        # Connect to the Gmail SMTP server and send the email
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()  # Secure the connection
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, message.as_string())
+            print("Email sent successfully!")
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            server.quit()
+    
     async def post_user(self,body):
         email = body["email"]
         existing = self.db.find_data(
@@ -57,11 +122,16 @@ class User:
                 Resources.EXISTS,
             )   
         else:
-            hashed_password = self.hash_password(body["password"])
+            pwd=self.generate_password()
+            hashed_password = self.hash_password(pwd)
             body["password"]=hashed_password
             inserted_details = self.db.insert_data(
                 self.collection, self.model, body
             )
+            try:
+                self.send_email(email,pwd)
+            except Exception as e:
+                print(f"Error: {e}")
             return inserted_details
     
     async def update_user(self,body):
