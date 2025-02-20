@@ -7,6 +7,7 @@ class UserSchema(BaseModel):
     password:str
     role:str
     favourites:list =[]
+    otp:Optional[str]=Field(None)
 
 class RequestUserSchema(BaseModel):
     name:str
@@ -23,3 +24,8 @@ class PutUserSchema(BaseModel):
 class LoginUserSchema(BaseModel):
     email:str
     password:str
+
+class UpdatePwdSchema(BaseModel):
+    email:str
+    password:str
+    otp:str

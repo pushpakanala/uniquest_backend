@@ -61,6 +61,73 @@ class User:
         res = self.db.find_data(self.collection, self.model, {})
         return res
     
+    def generate_otp(self,length=6):
+        digits = string.digits  # Use only numeric characters
+        otp = ''.join(random.choices(digits, k=length))
+        return otp
+    
+    def send_pwd_reset_email(self,recipient_email,otp):
+        sender_email = "uniquestservicesystem@gmail.com"
+        sender_password = "hmdzizsxynygmitz"  # Use an app password if 2FA is enabled
+        recipient_email = recipient_email
+        url="uniquest-d9hk.onrender.com"
+        # Email content
+        subject = "Password Reset Request"
+        body = f"""
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; background-color: #f4f4f9; padding: 20px;">
+  <div style="max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+    <h2 style="color: #333;">Password Reset Request - Uniquest</h2>
+    <p style="color: #555;">Hello,</p>
+    <p style="color: #555;">We received a request to reset your password for your <strong>Uniquest</strong> account. Please use the OTP below to update your password:</p>
+    <p style="font-size: 18px; font-weight: bold; color: #2a9d8f;">{otp}</p>
+    <p style="color: #555;">This OTP is valid for a limited time. If you did not request this change, please ignore this email.</p>
+    <p style="margin-top: 20px; color: #888;">Best regards,<br>The Uniquest Team</p>
+    <p style="margin-top: 10px; color: #555; text-align: center; font-style: italic;">Thanks for using Uniquest!</p>
+  </div>
+</body>
+</html>
+"""
+
+
+
+        # Create the email message
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = recipient_email
+        # Gmail account credentials
+        message["Subject"] = subject
+
+        # Attach the body to the email
+        message.attach(MIMEText(body, "html"))
+        # Connect to the Gmail SMTP server and send the email
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()  # Secure the connection
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, message.as_string())
+            print("Email sent successfully!")
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            server.quit()
+
+    
+    async def get_user_verify_by_email(self,email):
+        res = self.db.find_data(self.collection, self.model, {"email":email})
+        if res:
+            otp=self.generate_otp()
+            query = {"email": email}
+            body={"otp":otp}
+            updated_details = self.db.upsert_data(
+                self.collection, self.model, body, query, upsert=False
+            )
+            try:
+                self.send_pwd_reset_email(email,otp)
+            except Exception as e:
+                print(f"Error: {e}")
+        return res
+    
     def hash_password(self,password: str) -> str:
         return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     
@@ -140,6 +207,23 @@ class User:
             self.collection, self.model, body, query, upsert=False
         )
         return updated_details
+    
+    async def update_user_pwd(self,body):
+        query = {"email": body["email"]}
+        res = self.db.find_data(self.collection, self.model, query)
+        otp=res[0].otp
+        if otp==body['otp']:
+            pwd=self.hash_password(body['password'])
+            new_body={"password":pwd}
+            updated_details = self.db.upsert_data(
+                self.collection, self.model, new_body, query, upsert=False
+            )
+            return updated_details
+        else:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                Resources.NOT_MATCHED,
+            )   
     
     async def delete_user(self,body):
         query={"email":body}
