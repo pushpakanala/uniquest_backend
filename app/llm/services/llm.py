@@ -7,7 +7,7 @@ from app.common.constants import Resources
 from app.common.helpers import format_response
 import bcrypt,json,re
 import google.generativeai as ai
-import openai
+import openai,os
 
 class LLM:
     def __init__(
@@ -17,10 +17,10 @@ class LLM:
         self.db = db
         self.collection = llm
         self.model=LLMSchema
-        self.gemini_API_KEY=Resources.API_KEY
+        self.gemini_API_KEY=os.getenv("API_KEY")
         self.gemini_model = ai.GenerativeModel("gemini-pro")
         self.gemini_chat = self.gemini_model.start_chat()
-        self.gpt_API_KEY=Resources.GPT_API_KEY
+        self.gpt_API_KEY=os.getenv("GPT_API_KEY")
         self.gpt_model='gpt-4o'
     
     async def chat_with_ai(self,request):
