@@ -79,21 +79,51 @@ class LLM:
     async def get_gpt_universities_data(self,university_name):
         openai.api_key = self.gpt_API_KEY
         query = (
-    f"Provide details for {university_name} in the USA in **strict JSON format** with the following fields: " 
+    f"Provide details for {university_name} in the USA in **strict JSON format** with the following fields: "
     "'school': { 'zip', 'city', 'name', 'state', 'address', 'latitude', 'longitude', 'accreditor', 'school_url', "
-    "'accreditor_code', 'us_ranking', 'school_programs', 'eligibility_addmission_exams', 'founded_in','cost_of_living_near_university(low or medium or high)','type(public or private)','contact_details','graduation_rate','acceptance_rate' }, "  
-    "'programs': { 'undergrad_programs': [{'program_name', 'fees', 'program_duration','course_rank'}], "  
-    "'grad_programs': [{'program_name', 'fees', 'program_duration','course_rank'}] }, "  
+    "'accreditor_code', 'us_ranking', 'school_programs': ['program_1', 'program_2', ...], 'eligibility_admission_exams', 'founded_in', "
+    "'cost_of_living_near_university(low or medium or high)', 'type(public or private)', "
+    "'contact_details': { 'mobile', 'email' }, "
+    "'graduation_rate', 'acceptance_rate', "
+    "'application_fee': { "
+    "'undergraduate': { 'international_students', 'local_students', 'waivers_available', 'waiver_criteria' }, "
+    "'graduate': { 'international_students', 'local_students', 'waivers_available', 'waiver_criteria' } }, "
+    "'required_documents': { "
+    "'international_students': ['Retrieve the **mandatory** documents required for international students from the university’s official website. "
+    "Ensure required documents such as transcripts, test scores (GRE/TOEFL/IELTS/Duolingo), financial proof, "
+    "application form, application fee receipt, and check if a **Statement of Purpose (SOP), Letters of Recommendation (LOR), "
+    "and Passport Copy** are required. Include them only if mandatory.'], "
+    "'local_students': ['Retrieve the **mandatory** documents required for local students from the university’s official website. "
+    "Ensure required documents such as transcripts, standardized test scores (SAT/ACT/GRE if required), "
+    "application form, application fee receipt, and check if a **Statement of Purpose (SOP) and Letters of Recommendation (LOR)** "
+    "are required for graduate programs. Include them only if mandatory.'] }, "
+    "'part_time_opportunities': { 'on_campus_jobs': ['job_1', 'job_2', ...], "
+    "'internships': ['internship_1', 'internship_2', ...], "
+    "'assistantships': ['research_assistant', 'teaching_assistant', ...], "
+    "'availability_probability': { 'on_campus_jobs', 'internships', 'assistantships' } }, "
+    "'admission_deadlines': { 'fall': { 'international_students': 'Month Day, Year', 'local_students': 'Month Day, Year' }, "
+    "'spring': { 'international_students': 'Month Day, Year', 'local_students': 'Month Day, Year' }, "
+    "'summer': { 'international_students': 'Month Day, Year', 'local_students': 'Month Day, Year' } }, "
+    "'application_link', "
+    "'programs': { 'undergrad_programs': [{'program_name', 'total_fees', 'program_duration', 'course_rank'}], "
+    "'grad_programs': [{'program_name', 'total_fees', 'program_duration', 'course_rank'}] }, "
     "'students': { 'total_students', 'grad_students', 'men', 'women', 'race_ethnicity' }, "
     "'faculty': { 'men', 'women', 'race_ethnicity' } }, "
-    "Ensure 'us_ranking' is a number. Include 'GRE', 'IELTS', 'TOEFL', and 'Duolingo' in eligibility_addmission_exams "
+    "Ensure 'us_ranking' is a number. Include 'GRE', 'IELTS', 'TOEFL', and 'Duolingo' in eligibility_admission_exams "
     "if the university accepts them, along with any other exams it recognizes. "
     "Retrieve all available programs (ensure at least 10) in both undergraduate and graduate categories. "
-    "Display the **full name** of each program and ensure no majorly chosen program is omitted."
-    "Strictly return a **valid JSON object** without any extra text or explanations."
-    "For 'race_ethnicity' values, make sure to provide percentages even if data is not publicly available."
-
+    "Display the **full name** of each program and ensure no majorly chosen program is omitted. "
+    "Strictly return a **valid JSON object** without any extra text or explanations. "
+    "For 'race_ethnicity' values, make sure to provide percentages even if data is not publicly available. "
+    "Ensure 'course_rank' is a number. "
+    "Ensure 'admission_deadlines' are in 'Month Day, Year' format. "
+    "For undergraduate and graduate fees, show only the total duration cost instead of yearly fees."
 )
+
+
+
+
+
 
         response = openai.chat.completions.create(
         model=self.gpt_model,  # Ensure you are using a suitable model
