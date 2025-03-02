@@ -18,7 +18,7 @@ class LLM:
         self.collection = llm
         self.model=LLMSchema
         self.gemini_API_KEY=os.getenv("API_KEY")
-        self.gemini_model = ai.GenerativeModel("gemini-pro")
+        self.gemini_model = ai.GenerativeModel("gemini-2.0-flash")
         self.gemini_chat = self.gemini_model.start_chat()
         self.gpt_API_KEY=os.getenv("GPT_API_KEY")
         self.gpt_model='gpt-4o'
