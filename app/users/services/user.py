@@ -55,6 +55,7 @@ class User:
                 #  'role':res[0].role}
                 result = res[0].model_dump()
                 del result["password"]
+                del result['otp']
         return result
     
     async def get_all_users(self):
@@ -117,8 +118,9 @@ class User:
         res = self.db.find_data(self.collection, self.model, {"email":email})
         if res:
             otp=self.generate_otp()
+            hashed_otp=self.hash_password(otp)
             query = {"email": email}
-            body={"otp":otp}
+            body={"otp":hashed_otp}
             updated_details = self.db.upsert_data(
                 self.collection, self.model, body, query, upsert=False
             )
@@ -212,7 +214,8 @@ class User:
         query = {"email": body["email"]}
         res = self.db.find_data(self.collection, self.model, query)
         otp=res[0].otp
-        if otp==body['otp']:
+        unhashed_otp=self.verify_password(body['otp'],otp)
+        if unhashed_otp:
             pwd=self.hash_password(body['password'])
             new_body={"password":pwd}
             updated_details = self.db.upsert_data(
