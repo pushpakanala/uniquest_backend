@@ -48,6 +48,25 @@ async def get_all_universities(
         logger.error(f"{e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(500, f"Unknown Error Occurred: {e}")
+
+@router.get(path="/details/{id}")
+async def get_universities_details(
+    state_name:str,
+    s: Annotated[University, Depends(University)],
+):
+    try:
+        res = await s.get_universities_details(state_name)
+        if len(res):
+            return format_response(status.HTTP_200_OK, data=res)
+        else:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "State Not Found")
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        logger.error("DATA ERROR : ")
+        logger.error(f"{e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(500, f"Unknown Error Occurred: {e}")
     
 @router.post(path="/")
 async def post_state_university(
@@ -57,6 +76,30 @@ async def post_state_university(
     try:
         req_body = request.dict()
         res=await s.post_state_university(req_body)
+        if res.acknowledged:
+            return format_response(
+                status.HTTP_201_CREATED, message=Resources.CREATED
+            )
+        else:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "Unable to insert the request"
+            )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        logger.error("DATA ERROR : ")
+        logger.error(f"{e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(500, f"Unknown Error Occurred: {e}")
+
+@router.post(path="/details")
+async def post_university_details(
+    request: dict,
+    s:Annotated[University,Depends(University)],
+):
+    try:
+        req_body = request
+        res=await s.post_university_details(req_body)
         if res.acknowledged:
             return format_response(
                 status.HTTP_201_CREATED, message=Resources.CREATED

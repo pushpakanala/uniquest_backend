@@ -4,3 +4,6 @@ from typing import Annotated, List, Optional, Union
 class StateUniversitySchema(BaseModel):
     state_name: str
     university_name: str
+
+class UniversityDetailsSchema(BaseModel):
+    school:dict

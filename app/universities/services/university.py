@@ -1,8 +1,8 @@
 from fastapi import Depends, HTTPException,status
 from typing import Annotated
 from app.common.services.db_service import DBService
-from app.common.collections import state_universities
-from app.universities.models.university import StateUniversitySchema
+from app.common.collections import state_universities,university_details
+from app.universities.models.university import StateUniversitySchema, UniversityDetailsSchema
 from app.common.constants import Resources
 from app.common.helpers import format_response
 import bcrypt
@@ -13,7 +13,9 @@ class University:
     ):
         self.db = db
         self.collection = state_universities
+        self.uni_collection=university_details
         self.model=StateUniversitySchema
+        self.uni_model=UniversityDetailsSchema
     
     def process_string(self,s):
         return "".join(s.lower().split())
@@ -28,10 +30,20 @@ class University:
         res = self.db.find_data(self.collection, self.model, {})
         return res
     
+    async def get_universities_details(self,body):
+        res = self.db.find_data(self.uni_collection, self.uni_model, {"school.name":body})
+        return res
+    
     async def post_state_university(self,body):
         body['state_name']=self.process_string(body['state_name'])
         inserted_details = self.db.insert_data(
             self.collection, self.model, body
+        )
+        return inserted_details
+    
+    async def post_university_details(self,body):
+        inserted_details = self.db.insert_data(
+            self.uni_collection, {}, body
         )
         return inserted_details
     
