@@ -12,7 +12,7 @@ ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 # Function to create a JWT token
-def create_access_token(data: dict, expires_delta: int = 15):
+def create_access_token(data: dict, expires_delta: int = 60):
     to_encode = data.copy()
     expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_delta)
     to_encode.update({"exp": expire})

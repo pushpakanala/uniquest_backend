@@ -111,7 +111,7 @@ class LLM:
     "'faculty': { 'men', 'women', 'race_ethnicity' } }, "
     "Ensure 'us_ranking' is a number. Include 'GRE', 'IELTS', 'TOEFL', and 'Duolingo' in eligibility_admission_exams "
     "if the university accepts them, along with any other exams it recognizes. "
-    "Retrieve all available programs (ensure at least 10) in both undergraduate and graduate categories. "
+    "Retrieve all available programs in both undergraduate and graduate categories. "
     "Display the **full name** of each program and ensure no majorly chosen program is omitted. "
     "Strictly return a **valid JSON object** without any extra text or explanations. "
     "For 'race_ethnicity' values, make sure to provide percentages even if data is not publicly available. "
