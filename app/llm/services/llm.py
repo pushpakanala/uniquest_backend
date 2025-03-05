@@ -136,3 +136,11 @@ class LLM:
                 return {"error": "Malformed JSON response"}
         else:
             return {"error": "No JSON detected in response"}
+    
+    async def get_compare_universities(self, universities):
+        universities_list=universities.split(',')
+        university_data = []
+        for university in universities_list:
+            res=await self.get_gpt_universities_data(university)
+            university_data.append(res)
+        return university_data

@@ -99,3 +99,26 @@ async def get_gpt_universities_data(
         logger.error(f"{e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(500, f"Unknown Error Occurred: {e}")
+
+@router.get(path="/compare-universities-llm")
+async def get_compare_universities(
+    university_names:str,
+    s:Annotated[LLM,Depends(LLM)],
+):
+    try:
+        res=await s.get_compare_universities(university_names)
+        if res:
+            return format_response(
+                status.HTTP_200_OK,data=res, message=Resources.FETCHED
+            )
+        else:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "Unable to handle the request"
+            )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        logger.error("DATA ERROR : ")
+        logger.error(f"{e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(500, f"Unknown Error Occurred: {e}")
