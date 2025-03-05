@@ -111,7 +111,7 @@ class LLM:
     "'faculty': { 'men', 'women', 'race_ethnicity' } }, "
     "Ensure 'us_ranking' is a number. Include 'GRE', 'IELTS', 'TOEFL', and 'Duolingo' in eligibility_admission_exams "
     "if the university accepts them, along with any other exams it recognizes. "
-    "Retrieve all available programs in both undergraduate and graduate categories. "
+    "Retrieve all available programs (ensure at least 10) in both undergraduate and graduate categories. "
     "Display the **full name** of each program and ensure no majorly chosen program is omitted. "
     "Strictly return a **valid JSON object** without any extra text or explanations. "
     "For 'race_ethnicity' values, make sure to provide percentages even if data is not publicly available. "
@@ -119,11 +119,6 @@ class LLM:
     "Ensure 'admission_deadlines' are in 'Month Day, Year' format. "
     "For undergraduate and graduate fees, show only the total duration cost instead of yearly fees."
 )
-
-
-
-
-
 
         response = openai.chat.completions.create(
         model=self.gpt_model,  # Ensure you are using a suitable model
