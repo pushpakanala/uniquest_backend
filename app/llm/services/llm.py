@@ -79,7 +79,9 @@ class LLM:
     async def get_gpt_universities_data(self,university_name):
         openai.api_key = self.gpt_API_KEY
         query = (
-    f"Provide details for {university_name} in the USA in **strict JSON format** with the following fields: "
+    f"First, check if {university_name} is a recognized university in the USA. "
+    "If the university is not found in the USA, return: {'error': 'University Not Found'} and do not execute further queries. "
+    "If the university is valid and located in the USA, provide details in **strict JSON format** with the following fields: "
     "'school': { 'zip', 'city', 'name', 'state', 'address', 'latitude', 'longitude', 'accreditor', 'school_url', "
     "'accreditor_code', 'us_ranking', 'school_programs': ['program_1', 'program_2', ...], 'eligibility_admission_exams', 'founded_in', "
     "'cost_of_living_near_university(low or medium or high)', 'type(public or private)', "
@@ -111,7 +113,7 @@ class LLM:
     "'faculty': { 'men', 'women', 'race_ethnicity' } }, "
     "Ensure 'us_ranking' is a number. Include 'GRE', 'IELTS', 'TOEFL', and 'Duolingo' in eligibility_admission_exams "
     "if the university accepts them, along with any other exams it recognizes. "
-    "Retrieve all available programs (ensure at least 10) in both undergraduate and graduate categories. "
+    "Retrieve all available programs (make sure minimum 10 programs from trusted sources like official university website) for both undergrad_programs and grad_programs. "
     "Display the **full name** of each program and ensure no majorly chosen program is omitted. "
     "Strictly return a **valid JSON object** without any extra text or explanations. "
     "For 'race_ethnicity' values, make sure to provide percentages even if data is not publicly available. "
