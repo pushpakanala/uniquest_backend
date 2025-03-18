@@ -9,7 +9,8 @@ __all__ = (
     "admin_management",
     "state_universities",
     "llm",
-    "university_details"
+    "university_details",
+    "metrics"
 )
 
 
@@ -18,6 +19,7 @@ admin_management="admin_management"
 state_universities="state_universities"
 llm="llm"
 university_details="university_details"
+metrics="metrics"
 
 
 def __dir__() -> List[str]:

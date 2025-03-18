@@ -7,6 +7,7 @@ from app.common.db import db
 from app.users.routers.index import router as user_router
 from app.universities.routers.index import router as university_router
 from app.llm.routers.index import router as llm_router
+from app.metrics.routers.index import router as metric_router
 from app.common.services.exception_handler import EXCEPTION_HANDLERS
 from app.common.auth import create_access_token, verify_token  # Import auth functions
 import os
@@ -47,3 +48,4 @@ app.add_event_handler("shutdown", db.close_mongo_connection)
 app.include_router(user_router)
 app.include_router(university_router, dependencies=[Depends(verify_token)])
 app.include_router(llm_router, dependencies=[Depends(verify_token)])
+app.include_router(metric_router)
