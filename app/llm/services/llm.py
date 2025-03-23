@@ -23,14 +23,62 @@ class LLM:
         self.gpt_API_KEY=os.getenv("GPT_API_KEY")
         self.gpt_model='gpt-4o'
     
-    async def chat_with_ai(self,request):
+
+    async def chat_with_ai(self, request):
         API_KEY = self.gemini_API_KEY
         ai.configure(api_key=API_KEY)
-        if request.lower() == "bye":
-            return {"response": "GoodBye!"}
-    
-        response = self.gemini_chat.send_message(request)
-        return {"response": response.text}
+
+        user_input = request.lower()
+
+        if user_input == "bye":
+            return {"response": "GoodBye! If you have more questions about universities, feel free to ask!"}
+
+        # Identity related queries
+        identity_queries = [
+            "what is your name", "who are you", "who created you",
+            "tell me about yourself", "what can you do", "who invented you"
+        ]
+        if any(query in user_input for query in identity_queries):
+            return {
+                "response": {
+                    "name": "Uniquest Assistant",
+                    "role": "Guide for exploring universities in the USA",
+                    "capabilities": [
+                        "Suggest universities",
+                        "Explain admission requirements",
+                        "List top courses",
+                        "Provide fee details",
+                        "Help with scholarships and living costs"
+                    ]
+                }
+            }
+
+        # Enhanced prompt with USA-only filter and satire for off-topic questions
+        prompt = (
+    "You are Uniquest Assistant, an expert in USA universities only.\n\n"
+    "Rules:\n"
+    "1. If the query is about universities outside the USA, respond only with a JSON like: {\"message\": \"I’d love to help, but my GPS only works within the borders of the USA — foreign universities are off the map!\"}\n"
+    "2. If the query is unrelated to universities or education, respond in a funny, satirical tone, but still return the response as a JSON with only a 'message' key.\n"
+    "3. If the query is about universities in the USA, respond in JSON format using keys like 'universities', 'courses', 'fees', 'requirements', 'scholarships', 'living_costs'. "
+    "Each key should have an appropriate value (list or string).\n\n"
+    "Avoid long paragraphs. Always respond in valid JSON format.\n\n"
+    "Now answer: " + request
+)
+
+
+
+        response = self.gemini_chat.send_message(prompt)
+
+        try:
+            structured_output = json.loads(response.text)
+        except json.JSONDecodeError:
+            structured_output = response.text
+        json_op = self.parse_gpt_json_response(structured_output)
+
+        return {"response": json_op}
+
+
+
     
     def parse_json_response(self,response_text):
         """Extracts valid JSON from the AI response."""
