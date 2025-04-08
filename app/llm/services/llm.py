@@ -89,9 +89,9 @@ class LLM:
                 json_data = json.loads(match.group(0))  # Convert matched JSON string
                 return json_data
             else:
-                return {"status": {"code": 500, "message": "Failed to parse JSON"}}
+                raise HTTPException(status_code=500)
         except json.JSONDecodeError:
-            return {"status": {"code": 500, "message": "Invalid JSON format"}}
+            raise HTTPException(status_code=500)
     
     def parse_gpt_json_response(self,response_text):
         """Extracts valid JSON from the AI response."""
@@ -102,10 +102,9 @@ class LLM:
                 json_data = json.loads(match.group(0))  # Convert matched JSON string
                 return json_data
             else:
-                return {"status": {"code": 500, "message": "Failed to parse JSON"}}
+                raise HTTPException(status_code=500)
         except json.JSONDecodeError:
-            return {"status": {"code": 500, "message": "Invalid JSON format"}}
-    
+            raise HTTPException(status_code=500)
     async def get_top_universities(self,state):
         API_KEY = self.gemini_API_KEY
         ai.configure(api_key=API_KEY)
@@ -194,3 +193,96 @@ class LLM:
             res=await self.get_gpt_universities_data(university)
             university_data.append(res)
         return university_data
+
+    async def post_chatbot(self, request_body):
+        session_id = request_body['session_id']
+        user_message = request_body['user_message']
+
+        if not session_id or not user_message:
+            raise HTTPException(status_code=400, detail="Missing session_id or message")
+
+        # Define Uniquest system prompt
+        system_prompt = {
+    "role": "system",
+    "content": (
+        "You are Uniquest Assistant, an expert in USA universities only.\n\n"
+        "You must always respond using this exact JSON format:\n\n"
+        "{\n"
+        "  \"universities\": [\n"
+        "    {\n"
+        "      \"name\": \"University Name\",\n"
+        "      \"courses\": [\"Course 1\", \"Course 2\"],\n"
+        "      \"fees\": {\n"
+        "        \"tuition\": \"string\",\n"
+        "        \"additional_costs\": \"string\",\n"
+        "        \"financial_aid\": \"string\"\n"
+        "      },\n"
+        "      \"requirements\": [\"Requirement 1\", \"Requirement 2\"],\n"
+        "      \"scholarships\": [\"Scholarship 1\", \"Scholarship 2\"],\n"
+        "      \"living_costs\": \"string\"\n"
+        "    }\n"
+        "  ],\n"
+        "  \"message\": \"Optional general answer or summary.\"\n"
+        "}\n\n"
+        "Rules:\n"
+        "1. If the query is about universities outside the USA, respond only with:\n"
+        "{ \"universities\": [], \"message\": \"I’d love to help, but my GPS only works within the borders of the USA — foreign universities are off the map!\" }\n\n"
+        "2. If the query is unrelated to universities or education, respond ONLY with a witty or satirical message. Do not attempt to answer such questions seriously. Example:\n"
+        "{ \"universities\": [], \"message\": \"I'm flattered, but I only flirt with facts about U.S. universities.\" }\n\n"
+        "3. If the query is a general educational question (e.g., 'What is a scholarship?'), return the explanation in the 'message' field and leave 'universities' empty.\n\n"
+        "4. For valid questions about U.S. universities, fill the 'universities' list with as much structured data as possible. Use empty strings or arrays for missing fields.\n\n"
+        "5. If asked about your identity or who created you, always reply with:\n"
+        "{ \"universities\": [], \"message\": \"I am UNIQUEST Assistant, proudly created by the Uniquest team to guide you through the world of U.S. universities.\" }\n\n"
+        "6. Do NOT use markdown, bullet points, asterisks, or any formatting.\n"
+        "7. Do NOT include any greeting like 'Sure!', 'Of course!', or any text outside the JSON object.\n"
+        "8. Your entire reply MUST be valid raw JSON. No extra characters or formatting. Just pure JSON.\n"
+    )
+}
+
+
+
+        # Load existing conversation or initialize
+        session = self.db.find_data(self.collection, self.model, {"session_id": session_id})
+        if session:
+            messages = session[0].messages
+            # Always make sure system prompt is the first message
+            if messages[0]["role"] != "system":
+                messages.insert(0, system_prompt)
+            else:
+                messages[0] = system_prompt  # Replace if it already exists but might differ
+        else:
+            messages = [system_prompt]
+
+        messages.append({"role": "user", "content": user_message})
+
+        openai.api_key = self.gpt_API_KEY
+        try:
+            response = openai.chat.completions.create(
+                model=self.gpt_model,
+                messages=messages
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+        assistant_reply = response.choices[0].message.content.strip()
+        messages.append({"role": "assistant", "content": assistant_reply})
+
+        # Save conversation history
+        self.db.upsert_data(
+            self.collection,
+            self.model,
+            {"messages": messages},
+            {"session_id": session_id},
+            upsert=True
+        )
+
+        # Parse response into JSON format
+        try:
+            structured_output = json.loads(assistant_reply)
+        except Exception:
+            structured_output = assistant_reply
+
+        # json_op = self.parse_gpt_json_response(structured_output)
+
+        return {"response": structured_output}
+

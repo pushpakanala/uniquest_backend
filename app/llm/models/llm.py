@@ -2,4 +2,9 @@ from pydantic import BaseModel, Field
 from typing import Annotated, List, Optional, Union
 
 class LLMSchema(BaseModel):
-    state_name: str
+    session_id:str
+    messages:list
+
+class RequestBOT(BaseModel):
+    session_id:str
+    user_message:str
